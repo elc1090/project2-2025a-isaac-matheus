@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Corpo interativo com imagem</title>
+    <style>
+        svg {
+            width: 400px;
+            cursor: pointer;
+        }
+        .hotspot:hover {
+            fill: rgba(255, 0, 0, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Escolha o que quer treinar hoje</h1>
+    </header>
+    <main>
+        <!-- Corpo Humano -->
+        <svg viewBox="0 0 400 800" xmlns="http://www.w3.org/2000/svg">
+            <image id="corpoImagem" href="assets/corpo.webp" x="0" y="0" width="512" height="512" />
+
+            <!-- Peito -->
+                <rect class="hotspot" x="223" y="109" width="76" height="65" 
+                fill="transparent"
+                onmouseover="trocarImagem('assets/corpopeito.webp')"
+                onmouseout="trocarImagem('assets/corpo.webp')"
+                onclick="window.location.href='pages/exerciciosdepeito.html'"/>
+
+            <!-- Braço Direito -->
+            <rect class="hotspot" x="299" y="109" width="31" height="149"
+                  fill="transparent"
+                  onmouseover="trocarImagem('assets/corpobraco.webp')"
+                  onmouseout="trocarImagem('assets/corpo.webp')"
+                  onclick="window.location.href='pages/exerciciosdebraco.html'" />
+
+            <!-- Braço Esquerdo -->
+            <rect class="hotspot" x="192" y="109" width="31" height="149"
+                  fill="transparent"
+                  onmouseover="trocarImagem('assets/corpobraco.webp')"
+                  onmouseout="trocarImagem('assets/corpo.webp')"
+                  onclick="window.location.href='pages/exerciciosdebraco.html'" />
+
+            <!-- Abdômen -->
+                <rect class="hotspot" x="223" y="174" width="76" height="84" 
+                fill="transparent"
+                onmouseover="trocarImagem('assets/corpoabdomen.webp')"
+                onmouseout="trocarImagem('assets/corpo.webp')"
+                onclick="window.location.href='pages/exerciciosdeabdomen.html'"/>
+
+            <!-- Perna Direita -->
+            <rect class="hotspot" x="268" y="258" width="31" height="197" 
+                fill="transparent"
+                onmouseover="trocarImagem('assets/corpoperna.webp')"
+                onmouseout="trocarImagem('assets/corpo.webp')"
+                onclick="window.location.href='pages/exerciciosdeperna.html'"/>
+
+            <!-- Perna Esquerda -->
+            <rect class="hotspot" x="223" y="258" width="31" height="197" 
+                fill="transparent"
+                onmouseover="trocarImagem('assets/corpoperna.webp')"
+                onmouseout="trocarImagem('assets/corpo.webp')"
+                onclick="window.location.href='pages/exerciciosdeperna.html'"/>
+        </svg>
+    </main>
+
+    <script>
+        function trocarImagem(novaImagem) {
+            document.getElementById("corpoImagem").setAttribute("href", novaImagem);
+        }
+    </script>
+</body>
+</html>
