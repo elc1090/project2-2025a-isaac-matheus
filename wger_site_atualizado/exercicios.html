@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Exercícios - MuscleMestre</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="font-sans flex flex-col min-h-screen bg-fixed bg-cover bg-center bg-no-repeat" style="background-image: url('pexels-pixabay-260352.jpg');">
+  <div class="absolute inset-0 bg-black bg-opacity-60 z-0"></div>
+
+  <div class="relative z-10 flex flex-col flex-grow">
+    <!-- Cabeçalho atualizado -->
+    <header class="relative h-48 bg-cover bg-center shadow-md overflow-hidden" style="background-image: url('gymimage.jpg');">
+      <div class="absolute inset-0 bg-gradient-to-b from-black/70 via-black/30 to-transparent"></div>
+      <div class="relative container mx-auto px-4 h-full flex justify-between items-center text-white">
+        <h1 class="text-5xl font-extrabold tracking-wide drop-shadow-lg bg-black bg-opacity-40 px-4 py-1 rounded">MuscleMestre</h1>
+        <nav class="space-x-4">
+          <a href="index.html" class="px-4 py-2 border border-white bg-red-600 hover:bg-red-700 rounded transition">Início</a>
+          <a href="favoritos.html" class="px-4 py-2 border border-white bg-red-600 hover:bg-red-700 rounded transition">Favoritos</a>
+          <a href="planos.html" class="px-4 py-2 border border-white bg-red-600 hover:bg-red-700 rounded transition">Planos</a>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Conteúdo -->
+    <main class="container mx-auto px-4 py-10 flex-1 bg-white bg-opacity-90 rounded-t-lg shadow-md">
+      <h2 class="text-2xl font-semibold text-center mb-6 text-gray-800">Exercícios</h2>
+
+      <!-- Filtros -->
+      <div class="flex flex-wrap gap-4 justify-center mb-8">
+        <select id="category-filter" class="px-4 py-2 rounded border border-gray-300" onchange="loadExercises()"></select>
+        <select id="muscle-filter" class="px-4 py-2 rounded border border-gray-300" onchange="loadExercises()"></select>
+        <select id="equipment-filter" class="px-4 py-2 rounded border border-gray-300" onchange="loadExercises()"></select>
+      </div>
+
+      <!-- Lista -->
+      <div id="exercise-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6"></div>
+    </main>
+
+    <!-- Modal para adicionar ao plano -->
+    <div id="modal-planos" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg p-6 w-80 shadow-lg">
+        <h3 class="text-xl font-bold mb-4">Escolha o plano</h3>
+        <select id="select-planos" class="w-full mb-4 border px-3 py-2 rounded"></select>
+        <div class="flex justify-end gap-2">
+          <button onclick="fecharModal()" class="px-4 py-2 bg-gray-400 rounded hover:bg-gray-500 text-white">Cancelar</button>
+          <button id="btn-add-to-plan" class="px-4 py-2 bg-blue-700 rounded hover:bg-blue-800 text-white">Adicionar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rodapé atualizado -->
+    <footer class="bg-blue-800 text-white text-center py-4 bg-cover bg-center" style="background-image: url('gymimage.jpg');">
+      <div class="bg-black bg-opacity-60 py-2">
+        <p>&copy; 2025 - MuscleMestre - A sua plataforma de treino</p>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    const API = "https://wger.de/api/v2";
+    let exercicioSelecionado = null;
+
+    async function fetchData(url) {
+      try {
+        const res = await fetch(url);
+        return await res.json();
+      } catch (e) {
+        console.error("Erro ao buscar dados:", e);
+        return null;
+      }
+    }
+
+    async function loadFilters() {
+      const [categories, muscles, equipment] = await Promise.all([
+        fetchData(`${API}/exercisecategory/`),
+        fetchData(`${API}/muscle/`),
+        fetchData(`${API}/equipment/`)
+      ]);
+
+      populateSelect("category-filter", categories?.results, "name");
+      populateSelect("muscle-filter", muscles?.results, "name");
+      populateSelect("equipment-filter", equipment?.results, "name");
+    }
+
+    function populateSelect(id, items, key) {
+      const select = document.getElementById(id);
+      if (!select || !items) return;
+      select.innerHTML = `<option value="">Todos</option>`;
+      items.forEach(item => {
+        const option = document.createElement("option");
+        option.value = item.id;
+        option.textContent = item[key];
+        select.appendChild(option);
+      });
+    }
+
+    async function loadExercises() {
+      const list = document.getElementById("exercise-list");
+      if (!list) return;
+      list.innerHTML = "Carregando...";
+
+      const category = document.getElementById("category-filter")?.value;
+      const muscle = document.getElementById("muscle-filter")?.value;
+      const equipment = document.getElementById("equipment-filter")?.value;
+
+      const data = await fetchData(`${API}/exerciseinfo/?language=2&limit=60`);
+      list.innerHTML = "";
+
+      if (!data?.results?.length) {
+        list.innerHTML = "<p class='text-white'>Nenhum exercício encontrado.</p>";
+        return;
+      }
+
+      for (const e of data.results) {
+        const translation = e.translations.find(t => t.language === 2);
+        const name = translation?.name || "Sem nome";
+        const description = translation?.description?.replace(/<[^>]*>/g, "") || "Sem descrição";
+        const categoryName = e.category?.name || "Sem categoria";
+
+        if (
+          (category && e.category?.id != category) ||
+          (muscle && !e.muscles.some(m => m.id == muscle)) ||
+          (equipment && !e.equipment.some(eq => eq.id == equipment))
+        ) continue;
+
+        const images = await fetchData(`${API}/exerciseimage/?exercise=${e.id}`);
+        const imgUrl = images?.results[0]?.image || null;
+
+        const card = document.createElement("div");
+        card.className = "bg-white rounded-lg shadow-lg overflow-hidden flex flex-col hover:scale-105 transform transition duration-300";
+
+        card.innerHTML = `
+          ${
+            imgUrl
+              ? `<img src="${imgUrl}" alt="${name}" class="w-full h-40 object-cover">`
+              : `<div class="w-full h-40 bg-blue-900 text-white flex items-center justify-center">Imagem indisponível</div>`
+          }
+          <div class="p-4 flex flex-col flex-grow">
+            <h3 class="font-bold text-lg mb-1 text-yellow-500">${name}</h3>
+            <p class="text-sm text-gray-600 mb-2">${categoryName}</p>
+            <p class="text-sm text-gray-700 mb-3 flex-grow">${description.slice(0, 80)}...</p>
+            <div class="flex justify-end">
+              <button onclick="abrirModal(${e.id}, '${name.replace(/'/g, "\\'")}')" class="px-3 py-2 text-sm bg-green-600 text-white rounded hover:bg-green-700 transition">➕ Adicionar ao Plano</button>
+            </div>
+          </div>
+        `;
+
+        list.appendChild(card);
+      }
+    }
+
+    function abrirModal(id, name) {
+      exercicioSelecionado = { id, name };
+      const select = document.getElementById("select-planos");
+      select.innerHTML = "";
+
+      const planos = JSON.parse(localStorage.getItem("planos")) || {};
+      const nomes = Object.keys(planos);
+
+      if (nomes.length === 0) {
+        select.innerHTML = `<option disabled selected>Nenhum plano criado</option>`;
+      } else {
+        nomes.forEach(nome => {
+          const opt = document.createElement("option");
+          opt.value = nome;
+          opt.textContent = nome;
+          select.appendChild(opt);
+        });
+      }
+
+      document.getElementById("modal-planos").classList.remove("hidden");
+    }
+
+    function fecharModal() {
+      document.getElementById("modal-planos").classList.add("hidden");
+    }
+
+    document.getElementById("btn-add-to-plan").addEventListener("click", () => {
+      const select = document.getElementById("select-planos");
+      const nomePlano = select.value;
+      if (!nomePlano || !exercicioSelecionado) return;
+
+      const planos = JSON.parse(localStorage.getItem("planos")) || {};
+      if (!planos[nomePlano]) planos[nomePlano] = [];
+
+      planos[nomePlano].push(exercicioSelecionado);
+      localStorage.setItem("planos", JSON.stringify(planos));
+
+      fecharModal();
+      alert(`Exercício adicionado ao plano "${nomePlano}"!`);
+    });
+
+    window.onload = () => {
+      loadFilters();
+      loadExercises();
+    };
+  </script>
+</body>
+</html>

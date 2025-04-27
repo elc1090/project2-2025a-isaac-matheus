@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MuscleMestre - Início</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    #carousel {
+      scroll-behavior: smooth;
+    }
+    .card-hover:hover {
+      transform: scale(1.05);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    }
+  </style>
+</head>
+<body class="font-sans flex flex-col min-h-screen bg-fixed bg-cover bg-center bg-no-repeat" style="background-image: url('pexels-pixabay-260352.jpg');">
+
+  <div class="absolute inset-0 bg-black bg-opacity-60 z-0"></div>
+
+  <div class="relative z-10 flex flex-col flex-grow">
+    <!-- Cabeçalho -->
+    <header class="relative h-48 bg-cover bg-center shadow-md overflow-hidden" style="background-image: url('gymimage.jpg');">
+      <div class="absolute inset-0 bg-gradient-to-b from-black/70 via-black/30 to-transparent"></div>
+      <div class="relative container mx-auto px-4 h-full flex justify-between items-center text-white">
+        <h1 class="text-5xl font-extrabold tracking-wide drop-shadow-lg bg-black bg-opacity-40 px-4 py-1 rounded">MuscleMestre</h1>
+        <nav class="space-x-4">
+          <a href="exercicios.html" class="px-4 py-2 border border-white bg-red-600 hover:bg-red-700 rounded transition">Exercícios</a>
+          <a href="favoritos.html" class="px-4 py-2 border border-white bg-red-600 hover:bg-red-700 rounded transition">Favoritos</a>
+          <a href="planos.html" class="px-4 py-2 border border-white bg-red-600 hover:bg-red-700 rounded transition">Planos</a>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Conteúdo -->
+    <main class="container mx-auto px-4 py-10 flex-1 bg-white bg-opacity-90 rounded-t-lg shadow-md">
+
+      <!-- Login -->
+      <section class="max-w-md mx-auto bg-white bg-opacity-90 p-6 rounded shadow mb-12">
+        <h2 class="text-2xl font-semibold mb-4 text-center">Login</h2>
+        <form id="login-form" class="space-y-4">
+          <input type="text" id="username" placeholder="Usuário" class="w-full px-3 py-2 border rounded" required />
+          <input type="password" id="password" placeholder="Senha" class="w-full px-3 py-2 border rounded" required />
+          <button type="submit" class="w-full bg-red-600 text-white py-2 rounded hover:bg-red-700">Entrar</button>
+        </form>
+      </section>
+
+      <!-- Carrossel Em Alta -->
+      <section id="em-alta" class="relative border-t pt-8 border-yellow-400">
+        <h3 class="text-2xl font-bold mb-6 text-center text-yellow-400">🔥 Em Alta</h3>
+        
+        <!-- Botões -->
+        <button onclick="scrollCarousel(-1)" class="absolute -left-4 top-1/2 transform -translate-y-1/2 bg-yellow-400 text-white rounded-full w-10 h-10 shadow hover:bg-yellow-500 z-10">‹</button>
+        <button onclick="scrollCarousel(1)" class="absolute -right-4 top-1/2 transform -translate-y-1/2 bg-yellow-400 text-white rounded-full w-10 h-10 shadow hover:bg-yellow-500 z-10">›</button>
+        
+        <!-- Carrossel -->
+        <div id="carousel" class="flex overflow-x-auto space-x-4 px-12 py-4 no-scrollbar"></div>
+      </section>
+
+    </main>
+
+    <!-- Rodapé -->
+    <footer class="bg-blue-800 text-white text-center py-4 bg-cover bg-center" style="background-image: url('gymimage.jpg');">
+      <div class="bg-black bg-opacity-60 py-2">
+        <p>&copy; 2025 - MuscleMestre - A sua plataforma de treino</p>
+      </div>
+    </footer>
+
+  </div>
+
+  <script>
+    const API = "https://wger.de/api/v2";
+    let carouselItems = [];
+    let autoScrollInterval;
+
+    document.getElementById("login-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      if (document.getElementById("username").value && document.getElementById("password").value) {
+        window.location.href = "exercicios.html";
+      }
+    });
+
+    async function fetchData(url) {
+      try {
+        const res = await fetch(url);
+        return await res.json();
+      } catch (e) {
+        console.error("Erro ao buscar dados:", e);
+        return null;
+      }
+    }
+
+    async function loadTrendingExercises() {
+      const data = await fetchData(`${API}/exerciseinfo/?language=2&limit=40`);
+      if (!data?.results) return;
+
+      const filtered = data.results.filter(e => e.translations.length && e.category);
+      const selected = filtered.slice(0, 20);
+
+      carouselItems = await Promise.all(
+        selected.map(async (e) => {
+          const translation = e.translations.find(t => t.language === 2);
+          const name = translation?.name || "Sem nome";
+          const description = translation?.description?.replace(/<[^>]*>/g, '') || "Sem descrição";
+
+          const imgData = await fetchData(`${API}/exerciseimage/?exercise=${e.id}`);
+          const imgUrl = imgData?.results?.[0]?.image || null;
+
+          return { name, description, img: imgUrl };
+        })
+      );
+
+      renderCarousel();
+      startAutoScroll();
+    }
+
+    function renderCarousel() {
+      const container = document.getElementById("carousel");
+      container.innerHTML = "";
+
+      for (const ex of carouselItems) {
+        const card = document.createElement("div");
+        card.className = "card-hover flex-shrink-0 w-64 h-[350px] bg-white border border-yellow-400 rounded-lg shadow-lg overflow-hidden flex flex-col";
+
+        card.innerHTML = `
+          ${
+            ex.img
+              ? `<img src="${ex.img}" alt="${ex.name}" class="w-full h-40 object-cover">`
+              : `<div class="w-full h-40 bg-blue-900 flex items-center justify-center text-white font-semibold">Imagem indisponível</div>`
+          }
+          <div class="p-3 flex-1 flex flex-col justify-between">
+            <h4 class="font-semibold text-yellow-500 text-lg mb-1">${ex.name}</h4>
+            <p class="text-sm text-gray-700">${ex.description.slice(0, 80)}...</p>
+          </div>
+        `;
+        container.appendChild(card);
+      }
+    }
+
+    function scrollCarousel(direction) {
+      const container = document.getElementById("carousel");
+      const scrollAmount = 280;
+      container.scrollBy({ left: direction * scrollAmount, behavior: "smooth" });
+    }
+
+    function startAutoScroll() {
+      const container = document.getElementById("carousel");
+      autoScrollInterval = setInterval(() => {
+        if (container.scrollLeft + container.clientWidth >= container.scrollWidth) {
+          container.scrollTo({ left: 0, behavior: "smooth" });
+        } else {
+          container.scrollBy({ left: 1, behavior: "smooth" });
+        }
+      }, 20);
+    }
+
+    loadTrendingExercises();
+  </script>
+</body>
+</html>

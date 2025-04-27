@@ -1,0 +1,20 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+}
+
+/* Estilo para os botões da página inicial */
+a.block.w-full.text-center {
+  border: 2px solid white;
+  transition: transform 0.2s ease-in-out;
+}
+
+a.block.w-full.text-center:hover {
+  transform: scale(1.02);
+}
+
+/* Remover margem interna dos elementos principais */
+main, header, footer {
+  margin: 0;
+  padding: 0;
+}

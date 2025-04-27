@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Favoritos - MuscleMestre</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="font-sans flex flex-col min-h-screen bg-fixed bg-cover bg-center bg-no-repeat" style="background-image: url('pexels-pixabay-260352.jpg');">
+  <div class="absolute inset-0 bg-black bg-opacity-60 z-0"></div>
+
+  <div class="relative z-10 flex flex-col flex-grow">
+    <header class="relative h-48 bg-cover bg-center shadow-md overflow-hidden" style="background-image: url('gymimage.jpg');">
+      <div class="absolute inset-0 bg-gradient-to-b from-black/70 via-black/30 to-transparent"></div>
+      <div class="relative container mx-auto px-4 h-full flex justify-between items-center text-white">
+        <h1 class="text-5xl font-extrabold tracking-wide drop-shadow-lg bg-black bg-opacity-40 px-4 py-1 rounded">MuscleMestre</h1>
+        <nav class="space-x-4">
+          <a href="index.html" class="px-4 py-2 border border-white bg-red-600 hover:bg-red-700 rounded transition">Início</a>
+          <a href="exercicios.html" class="px-4 py-2 border border-white bg-red-600 hover:bg-red-700 rounded transition">Exercícios</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-10 flex-1 bg-white bg-opacity-90 rounded-t-lg shadow-md">
+      <h2 class="text-2xl font-bold mb-8 text-center text-gray-800">Seus Exercícios Favoritos</h2>
+      <div id="favoritos-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6"></div>
+    </main>
+
+    <footer class="bg-blue-800 text-white text-center py-4 bg-cover bg-center" style="background-image: url('gymimage.jpg');">
+      <div class="bg-black bg-opacity-60 py-2">
+        <p>&copy; 2025 - MuscleMestre - A sua plataforma de treino</p>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    const API = "https://wger.de/api/v2";
+
+    async function fetchData(url) {
+      try {
+        const res = await fetch(url);
+        return await res.json();
+      } catch (error) {
+        console.error("Erro ao buscar dados:", error);
+        return null;
+      }
+    }
+
+    async function renderFavoritos() {
+      const container = document.getElementById("favoritos-list");
+      const favoritos = JSON.parse(localStorage.getItem("favoritos")) || [];
+      if (!favoritos.length) {
+        container.innerHTML = "<p class='text-gray-600 text-center'>Você ainda não tem exercícios favoritos.</p>";
+        return;
+      }
+
+      const data = await fetchData(`${API}/exerciseinfo/?language=2&limit=100`);
+      container.innerHTML = "";
+
+      data?.results.forEach(async (exercise) => {
+        if (!favoritos.includes(exercise.id)) return;
+
+        const translation = exercise.translations.find(t => t.language === 2);
+        const name = translation?.name || "Sem nome";
+        const description = translation?.description?.replace(/<[^>]*>/g, "") || "Sem descrição";
+        const category = exercise.category?.name || "Sem categoria";
+
+        const images = await fetchData(`${API}/exerciseimage/?exercise=${exercise.id}`);
+        const imgUrl = images?.results?.[0]?.image || null;
+
+        const card = document.createElement("div");
+        card.className = "bg-white p-6 rounded-lg shadow-lg flex flex-col justify-between h-[400px] hover:scale-105 transform transition duration-300";
+
+        card.innerHTML = `
+          ${
+            imgUrl
+              ? `<img src="${imgUrl}" alt="${name}" class="w-full h-40 object-cover rounded mb-4">`
+              : `<div class="w-full h-40 bg-blue-900 text-white flex items-center justify-center rounded mb-4">Imagem indisponível</div>`
+          }
+          <div class="flex-1 flex flex-col">
+            <h3 class="text-lg font-bold mb-2 text-yellow-500">${name}</h3>
+            <p class="text-sm text-gray-600 mb-1">${category}</p>
+            <p class="text-sm text-gray-700 mb-4 flex-grow">${description.slice(0, 80)}...</p>
+            <button onclick="removerFavorito(${exercise.id})" class="w-full bg-red-600 text-white py-2 rounded hover:bg-red-700 transition mt-auto">Remover</button>
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+    }
+
+    function removerFavorito(id) {
+      const favoritos = JSON.parse(localStorage.getItem("favoritos")) || [];
+      const atualizado = favoritos.filter(fav => fav !== id);
+      localStorage.setItem("favoritos", JSON.stringify(atualizado));
+      renderFavoritos();
+    }
+
+    renderFavoritos();
+  </script>
+</body>
+</html>

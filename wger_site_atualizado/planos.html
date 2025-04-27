@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Planos - MuscleMestre</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="font-sans flex flex-col min-h-screen bg-fixed bg-cover bg-center bg-no-repeat" style="background-image: url('pexels-pixabay-260352.jpg');">
+  <div class="absolute inset-0 bg-black bg-opacity-60 z-0"></div>
+
+  <div class="relative z-10 flex flex-col flex-grow">
+    <header class="relative h-48 bg-cover bg-center shadow-md overflow-hidden" style="background-image: url('gymimage.jpg');">
+      <div class="absolute inset-0 bg-gradient-to-b from-black/70 via-black/30 to-transparent"></div>
+      <div class="relative container mx-auto px-4 h-full flex justify-between items-center text-white">
+        <h1 class="text-5xl font-extrabold tracking-wide drop-shadow-lg bg-black bg-opacity-40 px-4 py-1 rounded">MuscleMestre</h1>
+        <nav class="space-x-4">
+          <a href="index.html" class="px-4 py-2 border border-white bg-red-600 hover:bg-red-700 rounded transition">Início</a>
+          <a href="exercicios.html" class="px-4 py-2 border border-white bg-red-600 hover:bg-red-700 rounded transition">Exercícios</a>
+          <a href="favoritos.html" class="px-4 py-2 border border-white bg-red-600 hover:bg-red-700 rounded transition">Favoritos</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-10 flex-1 bg-white bg-opacity-90 rounded-t-lg shadow-md">
+      <section class="mb-10">
+        <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Criar Novo Plano</h2>
+        <form id="form-novo-plano" class="flex gap-2 mb-8 justify-center">
+          <input type="text" id="nome-plano" placeholder="Nome do Plano" class="border px-4 py-2 rounded flex-grow max-w-xs" required />
+          <button type="submit" class="bg-blue-700 text-white px-6 py-2 rounded hover:bg-blue-800">Criar</button>
+        </form>
+
+        <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Seus Planos</h2>
+        <div id="lista-planos" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+      </section>
+
+      <section>
+        <h2 class="text-2xl font-bold mb-6 text-center text-yellow-500">Planos Sugeridos</h2>
+        <div id="planos-sugeridos" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+      </section>
+    </main>
+
+    <footer class="bg-blue-800 text-white text-center py-4 bg-cover bg-center" style="background-image: url('gymimage.jpg');">
+      <div class="bg-black bg-opacity-60 py-2">
+        <p>&copy; 2025 - MuscleMestre - A sua plataforma de treino</p>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    const API = "https://wger.de/api/v2";
+    const listaPlanos = document.getElementById("lista-planos");
+    const planosSugeridosContainer = document.getElementById("planos-sugeridos");
+
+    function carregarPlanos() {
+      return JSON.parse(localStorage.getItem("planos")) || {};
+    }
+
+    function salvarPlanos(planos) {
+      localStorage.setItem("planos", JSON.stringify(planos));
+    }
+
+    function renderizarPlanos() {
+      const planos = carregarPlanos();
+      listaPlanos.innerHTML = "";
+
+      const nomes = Object.keys(planos);
+      if (nomes.length === 0) {
+        listaPlanos.innerHTML = "<p class='text-gray-600 text-center'>Nenhum plano criado ainda.</p>";
+        return;
+      }
+
+      nomes.forEach(nome => {
+        const exercicios = planos[nome];
+
+        const card = document.createElement("div");
+        card.className = "bg-white p-6 rounded-lg shadow-lg flex flex-col hover:scale-105 transform transition duration-300";
+
+        const listaExercicios = exercicios.length > 0
+          ? exercicios.map(e => `<li class="text-sm text-gray-700">${e.name}</li>`).join("")
+          : "<li class='text-gray-500'>Nenhum exercício adicionado ainda.</li>";
+
+        card.innerHTML = `
+          <h3 class="text-lg font-bold mb-2 text-blue-800">${nome}</h3>
+          <ul class="mb-4">${listaExercicios}</ul>
+          <div class="flex justify-end">
+            <button onclick="removerPlano('${nome}')" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition">Remover</button>
+          </div>
+        `;
+
+        listaPlanos.appendChild(card);
+      });
+    }
+
+    function removerPlano(nome) {
+      const planos = carregarPlanos();
+      delete planos[nome];
+      salvarPlanos(planos);
+      renderizarPlanos();
+    }
+
+    document.getElementById("form-novo-plano").addEventListener("submit", e => {
+      e.preventDefault();
+      const nome = document.getElementById("nome-plano").value.trim();
+      if (!nome) return;
+
+      const planos = carregarPlanos();
+      if (planos[nome]) {
+        alert("Já existe um plano com esse nome!");
+        return;
+      }
+
+      planos[nome] = [];
+      salvarPlanos(planos);
+      document.getElementById("nome-plano").value = "";
+      renderizarPlanos();
+    });
+
+    async function carregarPlanosSugeridos() {
+      try {
+        const data = await fetchData(`${API}/exerciseinfo/?language=2&limit=30`);
+        const exercicios = data?.results || [];
+
+        const planosSugeridos = [
+          {
+            nome: "Treino Full Body",
+            descricao: "Trabalha o corpo todo.",
+            exercicios: exercicios.slice(0, 5).map(e => {
+              const nome = e.name || (e.translations?.[0]?.name) || "Nome desconhecido";
+              return { id: e.id, name: nome };
+            })
+          },
+          {
+            nome: "Treino de Pernas",
+            descricao: "Foco total nas pernas e glúteos.",
+            exercicios: exercicios.slice(5, 10).map(e => {
+              const nome = e.name || (e.translations?.[0]?.name) || "Nome desconhecido";
+              return { id: e.id, name: nome };
+            })
+          },
+          {
+            nome: "Treino de Peito e Braços",
+            descricao: "Fortalecimento da parte superior.",
+            exercicios: exercicios.slice(10, 15).map(e => {
+              const nome = e.name || (e.translations?.[0]?.name) || "Nome desconhecido";
+              return { id: e.id, name: nome };
+            })
+          }
+        ];
+
+        planosSugeridos.forEach(plano => {
+          const card = document.createElement("div");
+          card.className = "bg-white p-6 rounded-lg shadow-lg flex flex-col justify-between h-[400px] hover:scale-105 transform transition duration-300";
+
+          const listaExercicios = plano.exercicios.map(ex => `<li class="text-sm text-gray-700">${ex.name}</li>`).join("");
+
+          card.innerHTML = `
+            <div>
+              <h3 class="text-lg font-bold mb-2 text-yellow-500">${plano.nome}</h3>
+              <p class="text-sm text-gray-700 mb-2">${plano.descricao}</p>
+              <ul class="mb-4">${listaExercicios}</ul>
+            </div>
+            <button onclick='adicionarPlanoSugerido(${JSON.stringify(plano)})' class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition mt-auto">Adicionar</button>
+          `;
+
+          planosSugeridosContainer.appendChild(card);
+        });
+      } catch (error) {
+        console.error("Erro ao buscar exercícios:", error);
+      }
+    }
+
+    function adicionarPlanoSugerido(plano) {
+      const planos = carregarPlanos();
+      if (planos[plano.nome]) {
+        alert("Você já tem esse plano!");
+        return;
+      }
+
+      planos[plano.nome] = plano.exercicios;
+      salvarPlanos(planos);
+      renderizarPlanos();
+      alert(`Plano "${plano.nome}" adicionado com sucesso!`);
+    }
+
+    async function fetchData(url) {
+      try {
+        const res = await fetch(url);
+        return await res.json();
+      } catch (err) {
+        console.error("Erro ao buscar dados:", err);
+        return null;
+      }
+    }
+
+    renderizarPlanos();
+    carregarPlanosSugeridos();
+  </script>
+</body>
+</html>
