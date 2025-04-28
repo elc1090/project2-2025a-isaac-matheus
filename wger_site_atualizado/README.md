@@ -15,16 +15,16 @@ Acesso: Substitua este texto pela URL de deploy do projeto
 
 
 ### Desenvolvedores
-Matheus Bevilacqua-Sistemas de informação
+Matheus Bevilacqua-Sistemas de informação & Isaac Silva-Sistemas para internet
 
 ### Nosso produto
 
-Um siste simples, onde o usuario seria capaz de acessar treinos e planos, tendo a capacidade de salvar os exercicios como favoritos, dentre outras funcionalidades.
+Um site simples, onde o usuario seria capaz de acessar treinos e planos, tendo a capacidade de salvar os exercicios como favoritos, dentre outras funcionalidades.
 
 
 ### Desenvolvimento
 
-O processo de desemvolvimento foi bem acidentado, falhas de conexão com a internet foram constantes. Além disso, o desconhecimento de alguma tecncnologia/ferramenta também complicou um pouco. O  d projeto começou através das idéias, após isso , iniciciamos o desenvolvimento, utilizando as ferramentas que tinhamos disponíveis, complementando com algumas que descobrimos durante os processos.
+O processo de desenvolvimento foi bem acidentado, falhas de conexão com a internet foram constantes. Além disso, o desconhecimento de alguma tecncnologia/ferramenta também complicou um pouco. O desenvolimento do projeto começou através das ideias, após isso, iniciciamos o desenvolvimento, utilizando as ferramentas que tinhamos disponíveis, complementando com algumas que descobrimos durante os processos.
 
 #### Tecnologias
 
@@ -32,6 +32,7 @@ O processo de desemvolvimento foi bem acidentado, falhas de conexão com a inter
 - CSS
 - JAVASCRIPT
 - TAILWIND
+- SVG
 
 
 #### Ambiente de desenvolvimento
@@ -39,7 +40,6 @@ O processo de desemvolvimento foi bem acidentado, falhas de conexão com a inter
 - Visual Studio code
 
 #### Referências e créditos
-
 
 - ...
 - ...
