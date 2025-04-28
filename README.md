@@ -1,6 +1,6 @@
 # Projeto: Consumindo uma API pública
 
-url do site: https://matheusb-99.github.io/Trabalhosite/index.html
+url do site: [MuscleMestre](https://isaacsilvaink.github.io/WgerAPITesteFinal/)
 
 ### Desenvolvedores
 Matheus Bevilacqua-Sistemas de informação
