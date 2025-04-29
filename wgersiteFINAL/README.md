@@ -1,6 +1,6 @@
 # Projeto: Consumindo uma API pública
 
-![Imagem do site](Screenshotsite.jpg)
+![Imagem do site](../Screenshotsite.jpg)
 
 
 Acesso: Substitua este texto pela URL de deploy do projeto
