@@ -2,7 +2,7 @@
 
 url do site: [MuscleMestre](https://isaacsilvaink.github.io/WgerAPITesteFinal/)
 
-![Imagem do site](Screenshotsite.jpg "Screenshot do projeto")
+![Imagem do site](../Screenshotsite.jpg "Screenshot do projeto")
 
 ### Desenvolvedores
 Matheus Bevilacqua-Sistemas de informação e
