@@ -78,7 +78,12 @@
         card.className = "bg-white p-6 rounded-lg shadow-lg flex flex-col hover:scale-105 transform transition duration-300";
 
         const listaExercicios = exercicios.length > 0
-          ? exercicios.map(e => `<li class="text-sm text-gray-700">${e.name}</li>`).join("")
+          ? exercicios.map((e, index) => `
+              <li class="text-sm text-gray-700 flex justify-between items-center">
+                ${e.name}
+                <button onclick="removerExercicio('${nome}', ${index})" class="text-red-600 hover:text-red-800 text-xs ml-2">&times;</button>
+              </li>
+            `).join("")
           : "<li class='text-gray-500'>Nenhum exercício adicionado ainda.</li>";
 
         card.innerHTML = `
@@ -96,6 +101,15 @@
     function removerPlano(nome) {
       const planos = carregarPlanos();
       delete planos[nome];
+      salvarPlanos(planos);
+      renderizarPlanos();
+    }
+
+    function removerExercicio(nomePlano, indexExercicio) {
+      const planos = carregarPlanos();
+      if (!planos[nomePlano]) return;
+
+      planos[nomePlano].splice(indexExercicio, 1);
       salvarPlanos(planos);
       renderizarPlanos();
     }
@@ -123,30 +137,9 @@
         const exercicios = data?.results || [];
 
         const planosSugeridos = [
-          {
-            nome: "Treino Full Body",
-            descricao: "Trabalha o corpo todo.",
-            exercicios: exercicios.slice(0, 5).map(e => {
-              const nome = e.name || (e.translations?.[0]?.name) || "Nome desconhecido";
-              return { id: e.id, name: nome };
-            })
-          },
-          {
-            nome: "Treino de Pernas",
-            descricao: "Foco total nas pernas e glúteos.",
-            exercicios: exercicios.slice(5, 10).map(e => {
-              const nome = e.name || (e.translations?.[0]?.name) || "Nome desconhecido";
-              return { id: e.id, name: nome };
-            })
-          },
-          {
-            nome: "Treino de Peito e Braços",
-            descricao: "Fortalecimento da parte superior.",
-            exercicios: exercicios.slice(10, 15).map(e => {
-              const nome = e.name || (e.translations?.[0]?.name) || "Nome desconhecido";
-              return { id: e.id, name: nome };
-            })
-          }
+          { nome: "Treino Full Body", descricao: "Trabalha o corpo todo.", exercicios: exercicios.slice(0, 5).map(e => ({ id: e.id, name: e.name || (e.translations?.[0]?.name) || "Nome desconhecido" })) },
+          { nome: "Treino de Pernas", descricao: "Foco total nas pernas e glúdeos.", exercicios: exercicios.slice(5, 10).map(e => ({ id: e.id, name: e.name || (e.translations?.[0]?.name) || "Nome desconhecido" })) },
+          { nome: "Treino de Peito e Braços", descricao: "Fortalecimento da parte superior.", exercicios: exercicios.slice(10, 15).map(e => ({ id: e.id, name: e.name || (e.translations?.[0]?.name) || "Nome desconhecido" })) }
         ];
 
         planosSugeridos.forEach(plano => {
